@@ -26,7 +26,19 @@ router.post('/users/login', async (req, res) => {
         res.status(400).send()
     }
 })
+router.post('/users/logout', auth, async (req, res) => {
+    try {
+        req.user.tokens = req.user.tokens.filter((token) => {
+            return token.token !== req.token
+        })
+        await req.user.save()
 
+        res.send()
+    } catch (e) {
+        res.status(500).send()
+        console.log(e)
+    }
+})
 router.get('/users', auth,  async (req, res) =>{
     await User.find({}).then((users) =>{
         res.send(users)
@@ -34,6 +46,17 @@ router.get('/users', auth,  async (req, res) =>{
         console.log(e)
     })
 })
+
+router.delete('/users/me', auth, async (req, res) => {
+    try {
+        await req.user.remove()
+        res.send(req.user)
+    } catch (e) {
+        res.status(500).send()
+    }
+})
+
+
 router.delete('/users/:id', async(req, res) => {
     try{
         const user = await User.findByIdAndDelete(req.params.id)
@@ -44,77 +67,36 @@ router.delete('/users/:id', async(req, res) => {
     } catch (e) {
 res.status(500).send
     }})
-/*router.post('/vendors/login', async(req: any, res: any) =>{
-    try{
-        const vendor = await Vendor.findByCredentials(req.body.email, req.body.password)
-        const token = await vendor.generateAuthToken()
-        res.send({vendor, token})
-    }catch(e){
-        res.status(400).send()
-    }
-})
+router.post('/users/logoutAll', auth, async (req, res) => {
+        try {
+            req.user.tokens = []
+            await req.user.save()
+            res.send()
+        } catch (e) {
+            res.status(500).send()
+        }
+    })
+    
+router.get('/users/me', auth, async (req, res) =>{
+    res.send(req.user)
+ })
 
-router.post('/vendors/logout', auth, async (req: any, res: any) => {
-    try {
-        req.vendor.tokens = req.vendor.tokens.filter((token: any) => {
-            return token.token !== req.token
-        })
-        await req.vendor.save()
-
-        res.send()
-    } catch (e) {
-        res.status(500).send()
-        console.log(e)
-    }
-})
-
-router.post('/vendors/logoutAll', auth, async (req: any, res: any) => {
-    try {
-        req.vendor.tokens = []
-        await req.vendor.save()
-        res.send()
-    } catch (e) {
-        res.status(500).send()
-    }
-})
-
-
-
-router.get('/vendors/me', auth, async (req: any, res: any) =>{
-   res.send(req.vendor)
-})
-
-router.get('/vendors/:id', async (req: any, res: any) => {
+ router.get('/users/:id', async (req, res) => {
     const _id = req.params.id
-    await Vendor.findById(_id).then((vendor: any) =>{
-        if(!vendor){
+    await User.findById(_id).then((user) =>{
+        if(!user){
             return res.status(404).send()
         }
-        res.send(vendor)
-    }).catch((e: any) =>{
+        res.send(user)
+    }).catch((e) =>{
         res.status(500).send()
     })
 })
 
-router.patch('/vendors/me', auth, async (req: any, res: any) => {
-    const updates = Object.keys(req.body)
-    const allowedUpdates = ['name', 'email', 'password']
-    const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
 
-    if (!isValidOperation) {
-        return res.status(400).send({ error: 'Invalid updates!' })
-    }
-        //not working
-    try {
-        updates.forEach((update) => req.vendor[update] = req.body[update])
-        await req.vendor.save()
-        res.send(req.vendor)
-    } catch (e) {
-        console.log(e)
-        res.status(400).send(e)
-        
-    }
-})
+/*
+
+
 
 router.patch('/vendors/:id', async(req: any,res:any) => {
     const updates = Object.keys(req.body)
@@ -137,25 +119,8 @@ router.patch('/vendors/:id', async(req: any,res:any) => {
     }
 })
 
-router.delete('/vendors/me', auth, async (req: any, res: any) => {
-    try {
-        await req.vendor.remove()
-        res.send(req.vendor)
-    } catch (e) {
-        res.status(500).send()
-    }
-})
 
 
-router.delete('/vendors/:id', async(req: any, res: any) => {
-    try{
-        const vendor = await Vendor.findByIdAndDelete(req.params.id)
-            if(!vendor){
-                return res.status(404).send()
-            }
-            res.send(vendor)
-    } catch (e) {
-res.status(500).send
-    }
+
 })*/ 
 module.exports = router
