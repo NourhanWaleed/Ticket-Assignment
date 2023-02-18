@@ -2,6 +2,7 @@ const express = require('express')
 const multer = require('multer')
 const sharp = require('sharp')
 const User = require('../models/user')
+const auth = require('../middleware/auth')
 const router = new express.Router()
 
 router.post('/users', async (req, res) => {
@@ -9,12 +10,29 @@ router.post('/users', async (req, res) => {
 
     try {
         await user.save()
-        //const token = await vendor.generateAuthToken()
+        const token = await user.generateAuthToken()
         res.status(201).send({ user})
     } catch (e) {
         console.log(e)
         res.status(400).send(e)
     }
+})
+router.post('/users/login', async (req, res) => {
+    try {
+        const user = await User.findByCredentials(req.body.email, req.body.password)
+        const token = await user.generateAuthToken()
+        res.send({ user, token })
+    } catch (e) {
+        res.status(400).send()
+    }
+})
+
+router.get('/users', auth,  async (req, res) =>{
+    await User.find({}).then((users) =>{
+        res.send(users)
+    }).catch((e) =>{
+        console.log(e)
+    })
 })
 router.delete('/users/:id', async(req, res) => {
     try{
@@ -60,13 +78,7 @@ router.post('/vendors/logoutAll', auth, async (req: any, res: any) => {
     }
 })
 
-router.get('/vendors', auth, async (req: any, res: any) =>{
-    await Vendor.find({}).then((vendors: any) =>{
-        res.send(vendors)
-    }).catch((e: any) =>{
-        console.log(e)
-    })
-})
+
 
 router.get('/vendors/me', auth, async (req: any, res: any) =>{
    res.send(req.vendor)
