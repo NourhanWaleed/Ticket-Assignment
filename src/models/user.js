@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const Ticket = require('./ticket')
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -33,6 +34,12 @@ const userSchema = new mongoose.Schema({
             required: true
         }
     }]
+})
+
+userSchema.virtual('tickets', {
+    ref: 'Ticket',
+    localField: '_id',
+    foreignField: 'owner'
 })
 
 userSchema.methods.toJSON = function () {

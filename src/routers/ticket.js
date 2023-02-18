@@ -1,9 +1,15 @@
 const express = require('express')
 const Ticket = require('../models/ticket')
+const auth = require('../middleware/auth')
 const router = new express.Router()
 
-router.post('/tickets', async (req,res) =>{
-    const ticket = new Ticket(req.body)
+
+//might delete this
+router.post('/tickets',auth, async (req,res) =>{
+    const ticket = new Ticket({
+        ...req.body,
+        owner: req.user._id
+    })
     try {
         await ticket.save()
     
@@ -13,24 +19,47 @@ router.post('/tickets', async (req,res) =>{
         res.status(400).send(e)
     }
 })
-router.get('/tickets',async (req, res) =>{
-    await Ticket.find({}).then((tickets) =>{
-        res.send(tickets)
-    }).catch((e) =>{
-        console.log(e)
-    })
+
+//add auth here
+router.get('/tickets',auth,async (req, res) =>{
+    const match = {}
+    const sort = {}
+
+    if (req.query.completed) {
+        match.resolved = req.query.resolved === 'true'
+    }
+
+    if(req.query.sortBy){
+        const parts = req.query.sortBy.split(':')
+        sort[parts[0]] = parts[1] === 'desc' ? -1: 1
+    }
+    try {
+        await req.user.populate({
+            path: 'tickets',
+            match,
+            options: {
+                limit: parseInt(req.query.limit),
+                skip: parseInt(req.query.skip),
+                sort
+            }
+        })
+        res.send(req.user.tickets)
+    } catch (e) {
+        res.status(500).send()
+    }
 })
 
-router.get('/tickets/:id', async (req, res) => {
+router.get('/tickets/:id',auth, async (req, res) => {
     const _id = req.params.id
-    await Ticket.findById(_id).then((ticket) =>{
+    try{
+    const ticket = await Ticket.findOne({_id, owner:req.user._id})
         if(!ticket){
             return res.status(404).send()
         }
         res.send(ticket)
-    }).catch((e) =>{
+    } catch(e) {
         res.status(500).send()
-    })
+    }
 })
 router.patch('/tickets/:id', async(req, res) =>{
     const updates = Object.keys(req.body)

@@ -9,6 +9,10 @@ const Ticket = mongoose.model('Ticket',{
     resolved: {
         type: Boolean,
         default: false
+    },
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
     }
 })
 
