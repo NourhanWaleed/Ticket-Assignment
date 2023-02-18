@@ -3,8 +3,10 @@ const Ticket = require('../models/ticket')
 const User = require('../models/user')
 const router = new express.Router()
 
-//TODO: ASSIGN TICKET (add to post)
 
+
+
+//create ticket and assign it to user
 router.post('/admintickets', async (req,res) =>{
     const ticket = new Ticket(req.body)
     try {
@@ -18,7 +20,7 @@ router.post('/admintickets', async (req,res) =>{
 })
 
 
-//this works
+//read all tickets
 router.get('/admintickets',async (req, res) =>{
     await Ticket.find({}).then((tickets) =>{
         res.send(tickets)

@@ -10,6 +10,10 @@ const Ticket = mongoose.model('Ticket',{
         type: Boolean,
         default: false
     },
+    accepted:{
+        type:Boolean,
+        default: false
+    },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         required: true

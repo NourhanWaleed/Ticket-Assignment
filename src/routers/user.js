@@ -5,6 +5,7 @@ const User = require('../models/user')
 const auth = require('../middleware/auth')
 const router = new express.Router()
 
+//Create user
 router.post('/users', async (req, res) => {
     const user = new User(req.body)
 
@@ -17,6 +18,8 @@ router.post('/users', async (req, res) => {
         res.status(400).send(e)
     }
 })
+
+//login user
 router.post('/users/login', async (req, res) => {
     try {
         const user = await User.findByCredentials(req.body.email, req.body.password)
@@ -26,6 +29,8 @@ router.post('/users/login', async (req, res) => {
         res.status(400).send()
     }
 })
+
+//logout user
 router.post('/users/logout', auth, async (req, res) => {
     try {
         req.user.tokens = req.user.tokens.filter((token) => {
@@ -39,6 +44,8 @@ router.post('/users/logout', auth, async (req, res) => {
         console.log(e)
     }
 })
+
+//read users
 router.get('/users', auth,  async (req, res) =>{
     await User.find({}).then((users) =>{
         res.send(users)
@@ -47,6 +54,8 @@ router.get('/users', auth,  async (req, res) =>{
     })
 })
 
+
+//delete self
 router.delete('/users/me', auth, async (req, res) => {
     try {
         await req.user.remove()
@@ -56,7 +65,7 @@ router.delete('/users/me', auth, async (req, res) => {
     }
 })
 
-
+//delete a certain user
 router.delete('/users/:id', async(req, res) => {
     try{
         const user = await User.findByIdAndDelete(req.params.id)
@@ -67,6 +76,8 @@ router.delete('/users/:id', async(req, res) => {
     } catch (e) {
 res.status(500).send
     }})
+
+    //logout all
 router.post('/users/logoutAll', auth, async (req, res) => {
         try {
             req.user.tokens = []
@@ -77,10 +88,14 @@ router.post('/users/logoutAll', auth, async (req, res) => {
         }
     })
     
+
+ //read profile   
 router.get('/users/me', auth, async (req, res) =>{
     res.send(req.user)
  })
 
+
+ //read a certain profile
  router.get('/users/:id', async (req, res) => {
     const _id = req.params.id
     await User.findById(_id).then((user) =>{

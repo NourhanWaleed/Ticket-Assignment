@@ -4,23 +4,9 @@ const auth = require('../middleware/auth')
 const router = new express.Router()
 
 
-//might delete this
-router.post('/tickets',auth, async (req,res) =>{
-    const ticket = new Ticket({
-        ...req.body,
-        owner: req.user._id
-    })
-    try {
-        await ticket.save()
-    
-        res.status(201).send({ ticket})
-    } catch (e) {
-        console.log(e)
-        res.status(400).send(e)
-    }
-})
 
-//add auth here
+
+//read tickets as user
 router.get('/tickets',auth,async (req, res) =>{
     const match = {}
     const sort = {}
@@ -49,6 +35,8 @@ router.get('/tickets',auth,async (req, res) =>{
     }
 })
 
+
+//read one ticket as user
 router.get('/tickets/:id',auth, async (req, res) => {
     const _id = req.params.id
     try{
@@ -61,9 +49,12 @@ router.get('/tickets/:id',auth, async (req, res) => {
         res.status(500).send()
     }
 })
+
+
+//edit ticket(accept, resolve)
 router.patch('/tickets/:id', async(req, res) =>{
     const updates = Object.keys(req.body)
-    const allowedUpdates = ['resolved']
+    const allowedUpdates = ['resolved','accepted']
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
 
     if(!isValidOperation){
@@ -77,13 +68,7 @@ router.patch('/tickets/:id', async(req, res) =>{
             return res.status(400).send()
         }
 
-       
-       /* if(ticket[update] === true){
-            console.log("here")
-            res.send(ticket)
-            ticket = await Ticket.findByIdAndDelete(req.params.id)
-            
-        }*/
+    
         return res.send(ticket)
 
     }catch(e){
@@ -91,6 +76,9 @@ router.patch('/tickets/:id', async(req, res) =>{
         
     }
 })
+
+
+//delete ticket when done
 router.delete('/tickets/:id', async(req, res) => {
     try{
         const ticket = await Ticket.findByIdAndDelete(req.params.id)
@@ -102,19 +90,5 @@ router.delete('/tickets/:id', async(req, res) => {
 res.status(500).send()
     }
 })
-/*
 
-
-router.delete('/items/:id', async(req: any, res: any) => {
-    try{
-        const item = await Item.findByIdAndDelete(req.params.id)
-            if(!item){
-                return res.status(404).send()
-            }
-            res.send(item)
-    } catch (e) {
-res.status(500).send()
-    }
-})
-*/
 module.exports = router
